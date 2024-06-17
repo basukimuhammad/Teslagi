@@ -151,7 +151,7 @@
     <div id="navside-container" data-include="navside.html"></div>
 
     <div class="content">
-        <h1>Chat GPT </h1>
+        <h1>Chat GPT</h1>
         <div id="chat-container"></div>
         <form id="chat-form">
             <input type="text" id="user-input" placeholder="Type in here..." autocomplete="off">
@@ -161,14 +161,13 @@
     </div>
     <!-- main js -->
     <script src="main.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
         var longPressTimer;
         var isLongPress = false;
         var isPlaying = false;
         var audioElement;
         var recognition;
-
-        const speechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
 
         function playTextToSpeech(text) {
             if (isPlaying) {
@@ -201,44 +200,8 @@
             }
         }
 
-        function startSpeechToText() {
-            if (!speechRecognition) {
-                alert('Speech recognition is not supported in this browser.');
-                return;
-            }
-
-            recognition = new speechRecognition();
-            recognition.lang = 'id-ID';
-            recognition.continuous = true;
-            recognition.interimResults = true;
-
-            recognition.onstart = function() {
-                console.log("you can speak now");
-            };
-
-            recognition.onresult = function(event) {
-                var text = event.results[0][0].transcript;
-                console.log(text);
-                $('#user-input').val(text);
-            };
-
-            recognition.onend = function() {
-                // Restart speech recognition after it ends
-                startSpeechToText();
-            };
-
-            recognition.start();
-        }
-
-        function stopSpeechToText() {
-            if (recognition) {
-                recognition.stop();
-            }
-        }
-
-        function sendMessage() {
+        function sendMessage(message) {
             stopTextToSpeech();
-            var message = $('#user-input').val();
             if (message.trim() === '') {
                 return;
             }
@@ -272,58 +235,34 @@
         $(document).ready(function() {
             $('#chat-form').submit(function(event) {
                 event.preventDefault();
-                sendMessage();
+                sendMessage($('#user-input').val());
             });
 
             $('#voice-button').mousedown(function() {
                 longPressTimer = setTimeout(function() {
                     isLongPress = true;
                     toggleLongPressAnimation();
-                    startSpeechToText();
+                    recognition.start();
                 }, 500);
             }).mouseup(function() {
                 clearTimeout(longPressTimer);
                 if (isLongPress) {
+                    recognition.stop();
                     isLongPress = false;
                     toggleLongPressAnimation();
-                    stopSpeechToText();
                 } else {
-                    sendMessage();
+                    sendMessage($('#user-input').val());
                 }
             }).mouseleave(function() {
                 clearTimeout(longPressTimer);
                 if (isLongPress) {
+                    recognition.stop();
                     isLongPress = false;
                     toggleLongPressAnimation();
-                    stopSpeechToText();
                 }
             });
         });
 
-        // Event handler untuk tombol voice ketika ditekan
-        $('#voice-button').on('mousedown touchstart', function(event) {
-            event.preventDefault();
-            toggleButtonAnimation(true); // Memulai animasi tombol membesar
-            longPressTimer = setTimeout(function() {
-                isLongPress = true;
-                startSpeechToText();
-            }, 500); // Menunggu 0.5 detik sebelum mengenali long press
-        }).on('mouseup touchend', function(event) {
-            event.preventDefault();
-            clearTimeout(longPressTimer);
-            if (!isLongPress) {
-                sendMessage();
-            }
-            isLongPress = false;
-            toggleButtonAnimation(false); // Menghentikan animasi tombol membesar
-        }).on('mouseleave touchcancel', function(event) {
-            event.preventDefault();
-            clearTimeout(longPressTimer);
-            isLongPress = false;
-            toggleButtonAnimation(false); // Menghentikan animasi tombol membesar
-        });
-
-        // Fungsi untuk mengganti animasi tombol saat ditekan
         function toggleButtonAnimation(isActive) {
             var voiceButton = $('#voice-button');
             if (isActive) {
@@ -332,6 +271,33 @@
                 voiceButton.css('transform', 'scale(1)');
             }
         }
-    </script>    
+
+        function toggleLongPressAnimation() {
+            var voiceButton = $('#voice-button');
+            voiceButton.toggleClass('long-press-animation');
+        }
+
+        const speechRecognition = window.speechRecognition || window.webkitSpeechRecognition;
+        recognition = new speechRecognition();
+
+        recognition.onstart = function() {
+            console.log("Speech recognition started");
+        };
+
+        recognition.onresult = function(event) {
+            var text = event.results[0][0].transcript;
+            console.log(text);
+            $('#user-input').val(text);
+            sendMessage(text);
+        };
+
+        recognition.onspeechend = function() {
+            recognition.stop();
+        };
+
+        recognition.onerror = function(event) {
+            console.error('Error occurred in recognition:', event.error);
+        };
+    </script>
 </body>
 </html>
