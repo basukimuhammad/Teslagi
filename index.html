@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -254,6 +255,39 @@
                 recognition.stop();
             });
         });
+        
+        // Event handler untuk tombol voice ketika ditekan
+$('#voice-button').on('mousedown touchstart', function(event) {
+    event.preventDefault();
+    toggleButtonAnimation(true); // Memulai animasi tombol membesar
+    longPressTimer = setTimeout(function() {
+        isLongPress = true;
+        startSpeechToText();
+    }, 500); // Menunggu 0.5 detik sebelum mengenali long press
+}).on('mouseup touchend', function(event) {
+    event.preventDefault();
+    clearTimeout(longPressTimer);
+    if (!isLongPress) {
+        sendMessage();
+    }
+    isLongPress = false;
+    toggleButtonAnimation(false); // Menghentikan animasi tombol membesar
+}).on('mouseleave touchcancel', function(event) {
+    event.preventDefault();
+    clearTimeout(longPressTimer);
+    isLongPress = false;
+    toggleButtonAnimation(false); // Menghentikan animasi tombol membesar
+});
+
+// Fungsi untuk mengganti animasi tombol saat ditekan
+function toggleButtonAnimation(isActive) {
+    var voiceButton = $('#voice-button');
+    if (isActive) {
+        voiceButton.css('transform', 'scale(1.2)');
+    } else {
+        voiceButton.css('transform', 'scale(1)');
+    }
+}
     </script>
 </body>
 </html>
