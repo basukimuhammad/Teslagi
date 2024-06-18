@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -164,7 +163,9 @@
         var isPlaying = false;
         var audioElement;
         var recognition;
-
+        var longPressTimer;
+        var isLongPress = false;
+        
         function playTextToSpeech(text) {
             if (isPlaying) {
                 audioElement.pause();
@@ -259,11 +260,11 @@
         // Event handler untuk tombol voice ketika ditekan
 $('#voice-button').on('mousedown touchstart', function(event) {
     event.preventDefault();
-    toggleButtonAnimation(true); // Memulai animasi tombol membesar
+    toggleButtonAnimation(true);
     longPressTimer = setTimeout(function() {
         isLongPress = true;
         startSpeechToText();
-    }, 500); // Menunggu 0.5 detik sebelum mengenali long press
+    }, 500);
 }).on('mouseup touchend', function(event) {
     event.preventDefault();
     clearTimeout(longPressTimer);
@@ -271,15 +272,14 @@ $('#voice-button').on('mousedown touchstart', function(event) {
         sendMessage();
     }
     isLongPress = false;
-    toggleButtonAnimation(false); // Menghentikan animasi tombol membesar
+    toggleButtonAnimation(false);
 }).on('mouseleave touchcancel', function(event) {
     event.preventDefault();
     clearTimeout(longPressTimer);
     isLongPress = false;
-    toggleButtonAnimation(false); // Menghentikan animasi tombol membesar
+    toggleButtonAnimation(false);
 });
 
-// Fungsi untuk mengganti animasi tombol saat ditekan
 function toggleButtonAnimation(isActive) {
     var voiceButton = $('#voice-button');
     if (isActive) {
